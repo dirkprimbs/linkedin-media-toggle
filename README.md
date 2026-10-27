@@ -42,3 +42,7 @@ extension ignores them. It relies on things that have stayed put:
 
 If LinkedIn changes one of these, `content.css` and `content.js` are the two
 places to update. Checked against the live feed on 2026-10-27.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
