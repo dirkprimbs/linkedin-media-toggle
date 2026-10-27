@@ -1,0 +1,26 @@
+/*
+ * Images and videos have separate switches: <html> carries lmt-hide-images
+ * and/or lmt-hide-videos (set by content.js).
+ *
+ * LinkedIn's class names are generated and change between deploys, so nothing
+ * here matches on them. What stays stable:
+ *   - the feed container: [data-testid="mainFeed"]
+ *   - video posts use a video.js player: [data-vjs-player]; its cover image
+ *     counts as part of the video, not as a post image
+ *   - image URLs name their kind: post media live under /dms/image/, and
+ *     avatars and logos say so in the path (profile-displayphoto, company-logo...);
+ *     LinkedIn's celebration graphics come from /media/ and sit in a <figure>,
+ *     while emoji and icons from /media/ do not
+ *
+ * The first rules hide media the instant it appears, before content.js has had
+ * a chance to look at it; content.js then collapses the empty wrappers around
+ * it (marked data-lmt-media="image" or "video") so no blank boxes are left.
+ */
+html.lmt-hide-images [data-testid="mainFeed"] img[src*="/dms/image/"]:not([src*="profile-displayphoto"]):not([src*="profile-framedphoto"]):not([src*="profile-displaybackgroundimage"]):not([src*="company-logo"]):not([src*="group-logo"]):not([data-vjs-player] img),
+html.lmt-hide-images [data-testid="mainFeed"] figure img[src*="licdn.com/media/"],
+html.lmt-hide-images [data-lmt-media="image"],
+html.lmt-hide-videos [data-testid="mainFeed"] [data-vjs-player],
+html.lmt-hide-videos [data-testid="mainFeed"] video,
+html.lmt-hide-videos [data-lmt-media="video"] {
+  display: none !important;
+}

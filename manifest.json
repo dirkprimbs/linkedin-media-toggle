@@ -1,0 +1,71 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Media Toggle",
+  "version": "1.1.0",
+  "description": "Hide or show post images and post videos in the LinkedIn feed, each with its own switch.",
+  "permissions": [
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "action": {
+    "default_title": "LinkedIn feed: images and videos shown",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "toggle-images": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "Show or hide post images"
+    },
+    "toggle-videos": {
+      "suggested_key": {
+        "default": "Alt+Shift+V"
+      },
+      "description": "Show or hide post videos"
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      },
+      "description": "Open the switches"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "linkedin-media-toggle@primbs.de",
+      "strict_min_version": "121.0"
+    }
+  }
+}
