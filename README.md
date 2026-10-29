@@ -1,7 +1,7 @@
 # LinkedIn Media Toggle
 
 A browser extension that hides or shows the images and videos in LinkedIn
-feed posts, each with its own switch. Click the toolbar button for the two
+feed posts, each with its own switch. Click the toolbar button for the
 switches, or use the shortcuts: **Alt+Shift+P** for images, **Alt+Shift+V**
 for videos (**Alt+Shift+M** opens the switches). The badge shows what is
 hidden: `img`, `vid` or `i+v`. The settings apply to all open LinkedIn tabs
@@ -16,8 +16,15 @@ Only media that is part of a post is touched:
 - **Never hidden:** profile pictures, company and group logos, emoji, reaction
   icons and other interface graphics.
 
-Posts collapse to their text; no empty boxes are left. Only the main feed
+Posts collapse to their text; no empty boxes are left. Where media was
+hidden, a small **Show image** / **Show video** button takes its place, for
+the odd post where the picture matters; it shows that one post's media and
+turns into **Hide image** to put it away again. Only the main feed
 (`/feed/`) is affected, not profiles or single-post pages.
+
+Two more switches in the popup tidy the right-hand column: one hides the
+whole **LinkedIn News** box, the other only the **Today's puzzles** section
+inside it. They have no shortcuts and don't show in the badge.
 
 ## Install
 
@@ -39,9 +46,12 @@ extension ignores them. It relies on things that have stayed put:
 - video.js players, `[data-vjs-player]`
 - the kind of image named in its URL: post media live under `/dms/image/`,
   while avatars and logos say `profile-displayphoto`, `company-logo` and so on
+- in the right-hand column: the News box is the section of
+  `aside[aria-label="Aside"]` that links to `/news/story/`, and the puzzles
+  sit in `#feedRightNavGamesComponentRef`
 
 If LinkedIn changes one of these, `content.css` and `content.js` are the two
-places to update. Checked against the live feed on 2026-10-27.
+places to update. Checked against the live feed on 2026-10-29.
 
 ## License
 

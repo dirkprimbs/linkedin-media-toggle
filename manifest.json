@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Media Toggle",
-  "version": "1.1.0",
-  "description": "Hide or show post images and post videos in the LinkedIn feed, each with its own switch.",
+  "version": "1.2.0",
+  "description": "Hide or show post images and post videos in the LinkedIn feed, each with its own switch, plus the LinkedIn News box and its puzzles.",
   "permissions": [
     "storage"
   ],

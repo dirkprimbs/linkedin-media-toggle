@@ -15,12 +15,56 @@
  * The first rules hide media the instant it appears, before content.js has had
  * a chance to look at it; content.js then collapses the empty wrappers around
  * it (marked data-lmt-media="image" or "video") so no blank boxes are left.
+ * A post the reader has opened with its own button carries data-lmt-shown and
+ * is left alone.
  */
-html.lmt-hide-images [data-testid="mainFeed"] img[src*="/dms/image/"]:not([src*="profile-displayphoto"]):not([src*="profile-framedphoto"]):not([src*="profile-displaybackgroundimage"]):not([src*="company-logo"]):not([src*="group-logo"]):not([data-vjs-player] img),
-html.lmt-hide-images [data-testid="mainFeed"] figure img[src*="licdn.com/media/"],
-html.lmt-hide-images [data-lmt-media="image"],
-html.lmt-hide-videos [data-testid="mainFeed"] [data-vjs-player],
-html.lmt-hide-videos [data-testid="mainFeed"] video,
-html.lmt-hide-videos [data-lmt-media="video"] {
+html.lmt-hide-images [data-testid="mainFeed"] img[src*="/dms/image/"]:not([src*="profile-displayphoto"]):not([src*="profile-framedphoto"]):not([src*="profile-displaybackgroundimage"]):not([src*="company-logo"]):not([src*="group-logo"]):not([data-vjs-player] img):not([data-lmt-shown] *),
+html.lmt-hide-images [data-testid="mainFeed"] figure img[src*="licdn.com/media/"]:not([data-lmt-shown] *),
+html.lmt-hide-images [data-lmt-media="image"]:not([data-lmt-shown] *),
+html.lmt-hide-videos [data-testid="mainFeed"] [data-vjs-player]:not([data-lmt-shown] *),
+html.lmt-hide-videos [data-testid="mainFeed"] video:not([data-lmt-shown] *),
+html.lmt-hide-videos [data-lmt-media="video"]:not([data-lmt-shown] *) {
+  display: none !important;
+}
+
+/*
+ * The per-post button sits where the media was. It only shows while the post
+ * holds media of a kind that is switched off. LinkedIn's media wrappers are
+ * flex and grid boxes that would stretch it to their full size, so it opts out.
+ */
+.lmt-post-toggle {
+  display: none;
+  flex: none;
+  align-self: start;
+  justify-self: start;
+  width: auto;
+  height: auto;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 16px;
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: 12px/1.6 system-ui, sans-serif;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.lmt-post-toggle:hover,
+.lmt-post-toggle:focus-visible { opacity: 1; }
+html.lmt-hide-images [role="listitem"]:has([data-lmt-media="image"]) .lmt-post-toggle,
+html.lmt-hide-videos [role="listitem"]:has([data-lmt-media="video"]) .lmt-post-toggle {
+  display: inline-flex;
+}
+
+/*
+ * The right-hand column. The LinkedIn News card is the aside section that
+ * links to /news/story/; the puzzles inside it keep a fixed id, with a thin
+ * divider just before their wrapper. Hiding the card takes the puzzles with it.
+ */
+html.lmt-hide-news aside[aria-label="Aside"] > div > div:has(a[href*="/news/story/"]),
+html.lmt-hide-puzzles div:has(> #feedRightNavGamesComponentRef),
+html.lmt-hide-puzzles div:has(+ [data-display-contents] > div > #feedRightNavGamesComponentRef) {
   display: none !important;
 }

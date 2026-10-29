@@ -47,6 +47,9 @@
     input:checked { background: #0a66c2; }
     input:checked::after { transform: translateX(14px); }
     input:focus-visible { outline: 2px solid #0a66c2; outline-offset: 2px; }
+    input:disabled { opacity: 0.4; cursor: default; }
+    hr { border: none; border-top: 1px solid currentColor; opacity: 0.15; margin: 6px 0; }
+    .sub { padding-left: 14px; }
   </style>
 </head>
 <body>
@@ -58,6 +61,15 @@
   <label>
     <span>Post videos <kbd>Alt+Shift+V</kbd></span>
     <input type="checkbox" id="videos">
+  </label>
+  <hr>
+  <label>
+    <span>LinkedIn News box</span>
+    <input type="checkbox" id="news">
+  </label>
+  <label class="sub">
+    <span>Today’s puzzles</span>
+    <input type="checkbox" id="puzzles">
   </label>
   <script src="popup.js"></script>
 </body>

@@ -2,15 +2,21 @@
 // switch (hideImages / hideVideos in storage). content.css does the hiding;
 // this script turns it on and off, sorts each piece of media into "image" or
 // "video", collapses the empty wrappers left around it, and keeps videos from
-// playing (sound included) while they are out of sight.
+// playing (sound included) while they are out of sight. Each post with hidden
+// media also gets a small button to show just that post's media. Two more
+// switches, hideNews and hidePuzzles, only toggle classes for content.css.
 
 const FEED = '[data-testid="mainFeed"]';
 const PLAYER = "[data-vjs-player]";
 // Image URLs that belong to people and pages rather than to a post.
 const NOT_POST_IMAGE = /profile-displayphoto|profile-framedphoto|profile-displaybackgroundimage|company-logo|group-logo/;
 const MARK = "data-lmt-media";
+const POST = '[role="listitem"]';
+const SHOWN = "data-lmt-shown";
+const BUTTON = "lmt-post-toggle";
 
-const state = { hideImages: false, hideVideos: false };
+const state = { hideImages: false, hideVideos: false, hideNews: false, hidePuzzles: false };
+const KEYS = Object.keys(state);
 
 // "video" for a video player (its cover image and controls included),
 // "image" for an image that is part of a post, null for everything else:
@@ -34,7 +40,7 @@ function mediaKind(el) {
 // strip collapses once all its images are marked.
 function holdsOnly(parent, child, kind) {
   for (const node of parent.childNodes) {
-    if (node === child) continue;
+    if (node === child || node.classList?.contains(BUTTON)) continue;
     if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute(MARK) !== kind) return false;
     if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) return false;
   }
@@ -42,12 +48,13 @@ function holdsOnly(parent, child, kind) {
 }
 
 // Video posts put their big play button next to the player rather than inside
-// it, so it would be left floating in an empty black box. Icon-only buttons
-// beside a player count as part of it.
-function markPlayButtons(node) {
+// it, and some images carry a "content credentials" badge beside them; either
+// would be left floating in an empty box. Icon-only buttons beside a piece of
+// media count as part of it.
+function markIconButtons(node, kind) {
   for (const sibling of node.parentElement.children) {
     if (sibling !== node && sibling.tagName === "BUTTON" && !sibling.textContent.trim()) {
-      sibling.setAttribute(MARK, "video");
+      sibling.setAttribute(MARK, kind);
     }
   }
 }
@@ -62,17 +69,66 @@ function markMedia() {
     let node = el.closest(PLAYER) || el;
     node.setAttribute(MARK, kind);
     while (node.parentElement && node.parentElement !== feed &&
-           !node.parentElement.matches('[role="listitem"]')) {
-      if (kind === "video") markPlayButtons(node);
+           !node.parentElement.matches(POST)) {
+      markIconButtons(node, kind);
       if (!holdsOnly(node.parentElement, node, kind)) break;
       node = node.parentElement;
       node.setAttribute(MARK, kind);
     }
   }
+  for (const post of feed.querySelectorAll(POST)) placeButton(post);
+}
+
+// What the post's button would show or hide: the kinds of media it holds that
+// are switched off. Empty if there is nothing to toggle.
+function hiddenKinds(post) {
+  return [
+    state.hideImages && post.querySelector(`[${MARK}="image"]`) && "image",
+    state.hideVideos && post.querySelector(`[${MARK}="video"]`) && "video",
+  ].filter(Boolean);
+}
+
+function label(post) {
+  const kinds = hiddenKinds(post);
+  const what = kinds.length > 1 ? "media" : kinds[0] || "media";
+  return `${post.hasAttribute(SHOWN) ? "Hide" : "Show"} ${what}`;
+}
+
+// Puts the button just before the outermost hidden wrapper of the post's
+// first piece of media, so it sits where that media was. Wrappers can grow
+// outward on later passes (a carousel collapses as its images load), so the
+// button is moved out again if it ends up inside one. Only touches the DOM
+// when something changed, since every change wakes the observer below.
+function placeButton(post) {
+  let top = post.querySelector(`[${MARK}]`);
+  if (!top) return;
+  while (top.parentElement !== post && top.parentElement.hasAttribute(MARK)) top = top.parentElement;
+  let button = post.querySelector(`.${BUTTON}`);
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = BUTTON;
+    button.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      togglePost(post);
+    });
+  }
+  if (button.nextElementSibling !== top) top.before(button);
+  const text = label(post);
+  if (button.textContent !== text) button.textContent = text;
+}
+
+function togglePost(post) {
+  const shown = post.toggleAttribute(SHOWN);
+  if (!shown) post.querySelectorAll("video").forEach((v) => v.pause());
+  placeButton(post);
 }
 
 function pauseFeedVideos() {
-  document.querySelectorAll(`${FEED} video`).forEach((v) => v.pause());
+  for (const v of document.querySelectorAll(`${FEED} video`)) {
+    if (!v.closest(`[${SHOWN}]`)) v.pause();
+  }
 }
 
 function apply(changes) {
@@ -80,14 +136,17 @@ function apply(changes) {
   const root = document.documentElement.classList;
   root.toggle("lmt-hide-images", state.hideImages);
   root.toggle("lmt-hide-videos", state.hideVideos);
+  root.toggle("lmt-hide-news", state.hideNews);
+  root.toggle("lmt-hide-puzzles", state.hidePuzzles);
   if (state.hideImages || state.hideVideos) markMedia();
   if (state.hideVideos) pauseFeedVideos();
 }
 
 // LinkedIn starts videos from script as they scroll into view. Catch every
-// play event on the way down and stop it while videos are hidden.
+// play event on the way down and stop it while videos are hidden, unless the
+// post has been opened with its own button.
 document.addEventListener("play", (e) => {
-  if (state.hideVideos && e.target.closest?.(FEED)) e.target.pause();
+  if (state.hideVideos && e.target.closest?.(FEED) && !e.target.closest(`[${SHOWN}]`)) e.target.pause();
 }, true);
 
 // The feed loads posts as you scroll and fills in image sources lazily, so
@@ -102,11 +161,11 @@ new MutationObserver(() => {
   });
 }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
 
-chrome.storage.local.get(["hideImages", "hideVideos"]).then(apply);
+chrome.storage.local.get(KEYS).then(apply);
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   const update = {};
-  for (const key of ["hideImages", "hideVideos"]) {
+  for (const key of KEYS) {
     if (key in changes) update[key] = changes[key].newValue ?? false;
   }
   apply(update);
